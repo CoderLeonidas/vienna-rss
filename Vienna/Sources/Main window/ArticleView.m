@@ -243,22 +243,11 @@ static NSMutableDictionary * stylePathMappings = nil;
 }
 
 /* clearHTML
- * Make the web view behave like a blank page.
+ * Loads the web view with the HTML text for a blank page.
  */
 -(void)clearHTML
 {
-    self.hidden = YES;
-    // ensures that future transitions are more consistent with theme used
-    if (@available(macOS 10.14, *)) {
-        if ([[NSApp.effectiveAppearance bestMatchFromAppearancesWithNames:@[NSAppearanceNameAqua,
-                                                                            NSAppearanceNameDarkAqua]] isEqualToString:
-             NSAppearanceNameDarkAqua])
-        {
-            [self.mainFrame loadHTMLString:@"<body style='background-color:#1E1E1E'></body>" baseURL:[NSURL URLWithString:@"/"]];
-            return;
-        }
-    }
-    [self setHTML:@""];
+	[self setHTML:@""];
 }
 
 /* setHTML
@@ -266,7 +255,6 @@ static NSMutableDictionary * stylePathMappings = nil;
  */
 -(void)setHTML:(NSString *)htmlText
 {
-	self.hidden = NO;
 	// If the current HTML is the same as the new HTML then we don't need to
 	// do anything here. This will stop the view from spurious redraws of the same
 	// article after a refresh.
@@ -293,7 +281,7 @@ static NSMutableDictionary * stylePathMappings = nil;
 			return;
 		
 		//Don't go back or forward in article view.
-        if ((theEvent.modifierFlags & NSEventModifierFlagCommand) &&
+		if ((theEvent.modifierFlags & NSCommandKeyMask) &&
 			((keyChar == NSLeftArrowFunctionKey) || (keyChar == NSRightArrowFunctionKey)))
 			return;
 	}

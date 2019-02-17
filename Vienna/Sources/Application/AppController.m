@@ -405,13 +405,13 @@ static void MySleepCallBack(void * refCon, io_service_t service, natural_t messa
 	NSMenuItem * alternateItem = menuItemWithAction(@selector(viewSourceHomePageInAlternateBrowser:));
 	if (alternateItem != nil)
 	{
-        alternateItem.keyEquivalentModifierMask = NSEventModifierFlagOption;
+		alternateItem.keyEquivalentModifierMask = NSAlternateKeyMask;
 		[alternateItem setAlternate:YES];
 	}
 	alternateItem = menuItemWithAction(@selector(viewArticlePagesInAlternateBrowser:));
 	if (alternateItem != nil)
 	{
-        alternateItem.keyEquivalentModifierMask = NSEventModifierFlagOption;
+		alternateItem.keyEquivalentModifierMask = NSAlternateKeyMask;
 		[alternateItem setAlternate:YES];
 	}
 	[self updateAlternateMenuTitle];
@@ -713,7 +713,7 @@ static void MySleepCallBack(void * refCon, io_service_t service, natural_t messa
 		
 		// Is this the currently set search method? If yes, mark it as such.
 		if ( [friendlyName isEqualToString:[Preferences standardPreferences].searchMethod.friendlyName] )
-			item.state = NSControlStateValueOn;
+			item.state = NSOnState;
 		
 		[cellMenu addItem:item];
 	}
@@ -732,7 +732,7 @@ static void MySleepCallBack(void * refCon, io_service_t service, natural_t messa
 			item.representedObject = searchMethod;
 			// Is this the currently set search method? If yes, mark it as such.
 			if ( [searchMethod.friendlyName isEqualToString: [Preferences standardPreferences].searchMethod.friendlyName] )
-				item.state = NSControlStateValueOn;
+				item.state = NSOnState;
 			[cellMenu addItem:item];
 		}
 	} 
@@ -1004,9 +1004,9 @@ withReplyEvent:(NSAppleEventDescriptor *)replyEvent
 	if (url != nil)
 	{
 		NSPasteboard * pboard = [NSPasteboard generalPasteboard];
-        [pboard declareTypes:@[NSPasteboardTypeString, NSURLPboardType] owner:self];
+		[pboard declareTypes:@[NSStringPboardType, NSURLPboardType] owner:self];
 		[url writeToPasteboard:pboard];
-		[pboard setString:url.description forType:NSPasteboardTypeString];
+		[pboard setString:url.description forType:NSStringPboardType];
 	}
 }
 
@@ -1180,7 +1180,7 @@ withReplyEvent:(NSAppleEventDescriptor *)replyEvent
     panel.accessoryView = accessoryController.view;
     panel.allowedFileTypes = @[@"opml"];
     [panel beginSheetModalForWindow:self.mainWindow completionHandler:^(NSInteger returnCode) {
-        if (returnCode == NSModalResponseOK)
+        if (returnCode == NSFileHandlingPanelOKButton)
         {
             [panel orderOut:self];
             
@@ -1219,7 +1219,7 @@ withReplyEvent:(NSAppleEventDescriptor *)replyEvent
     [panel beginSheetModalForWindow:self.mainWindow
                   completionHandler: ^(NSInteger returnCode) {
                       
-                      if (returnCode == NSModalResponseOK)
+                      if (returnCode == NSFileHandlingPanelOKButton)
                       {
                           [panel orderOut:self];
                           [Import importFromFile:panel.URL.path];
@@ -1492,8 +1492,8 @@ withReplyEvent:(NSAppleEventDescriptor *)replyEvent
 	// Insert the Scripts menu to the left of the Help menu only if
 	// we actually have any scripts.
 	if (count > 0) {
-        NSMenu *scriptsMenu = [[NSMenu alloc] initWithTitle:@""];
-
+		NSMenu * scriptsMenu = [[NSMenu allocWithZone:[NSMenu menuZone]] initWithTitle:@""];
+		
 		NSInteger index;
 		for (index = 0; index < count; ++index)
 		{
@@ -1519,7 +1519,7 @@ withReplyEvent:(NSAppleEventDescriptor *)replyEvent
 			[NSApp.mainMenu removeItem:scriptsMenuItem];
 		}
 		
-        scriptsMenuItem = [[NSMenuItem alloc] initWithTitle:@"" action:NULL keyEquivalent:@""];
+		scriptsMenuItem = [[NSMenuItem allocWithZone:[NSMenu menuZone]] initWithTitle:@"" action:NULL keyEquivalent:@""];
 		scriptsMenuItem.image = [NSImage imageNamed:@"ScriptsTemplate"];
 		
 		NSInteger helpMenuIndex = NSApp.mainMenu.numberOfItems - 1;
@@ -1697,16 +1697,16 @@ withReplyEvent:(NSAppleEventDescriptor *)replyEvent
 		closeTabItem.keyEquivalent = @"";
 		closeAllTabsItem.keyEquivalent = @"";
 		closeWindowItem.keyEquivalent = @"w";
-        closeWindowItem.keyEquivalentModifierMask = NSEventModifierFlagCommand;
+		closeWindowItem.keyEquivalentModifierMask = NSCommandKeyMask;
 	}
 	else
 	{
 		closeTabItem.keyEquivalent = @"w";
-        closeTabItem.keyEquivalentModifierMask = NSEventModifierFlagCommand;
+		closeTabItem.keyEquivalentModifierMask = NSCommandKeyMask;
 		closeAllTabsItem.keyEquivalent = @"w";
-        closeAllTabsItem.keyEquivalentModifierMask = NSEventModifierFlagCommand|NSEventModifierFlagOption;
+		closeAllTabsItem.keyEquivalentModifierMask = NSCommandKeyMask|NSAlternateKeyMask;
 		closeWindowItem.keyEquivalent = @"W";
-        closeWindowItem.keyEquivalentModifierMask = NSEventModifierFlagCommand;
+		closeWindowItem.keyEquivalentModifierMask = NSCommandKeyMask;
 	}
 }
 
@@ -2190,7 +2190,7 @@ withReplyEvent:(NSAppleEventDescriptor *)replyEvent
  */
 -(BOOL)handleKeyDown:(unichar)keyChar withFlags:(NSUInteger)flags
 {
-    if (keyChar >= '0' && keyChar <= '9' && (flags & NSEventModifierFlagControl))
+	if (keyChar >= '0' && keyChar <= '9' && (flags & NSControlKeyMask))
 	{
 		NSInteger layoutStyle = MA_Layout_Report + (keyChar - '0');
 		[self setLayout:layoutStyle withRefresh:YES];
@@ -2199,7 +2199,7 @@ withReplyEvent:(NSAppleEventDescriptor *)replyEvent
 	switch (keyChar)
 	{
 		case NSLeftArrowFunctionKey:
-            if (flags & (NSEventModifierFlagCommand | NSEventModifierFlagOption))
+			if (flags & (NSCommandKeyMask | NSAlternateKeyMask))
 				return NO;
 			else
 			{
@@ -2212,7 +2212,7 @@ withReplyEvent:(NSAppleEventDescriptor *)replyEvent
 			return NO;
 			
 		case NSRightArrowFunctionKey:
-            if (flags & (NSEventModifierFlagCommand | NSEventModifierFlagOption))
+			if (flags & (NSCommandKeyMask | NSAlternateKeyMask))
 				return NO;
 			else
 			{
@@ -2306,7 +2306,7 @@ withReplyEvent:(NSAppleEventDescriptor *)replyEvent
 		case NSCarriageReturnCharacter:
 			if (self.mainWindow.firstResponder == self.foldersTree.mainView)
 			{
-                if (flags & NSEventModifierFlagOption)
+				if (flags & NSAlternateKeyMask)
 					[self viewSourceHomePageInAlternateBrowser:self];
 				else
 					[self viewSourceHomePage:self];
@@ -2314,7 +2314,7 @@ withReplyEvent:(NSAppleEventDescriptor *)replyEvent
 			}
 			else
 			{
-                if (flags & NSEventModifierFlagOption)
+				if (flags & NSAlternateKeyMask)
 					[self viewArticlePagesInAlternateBrowser:self];
 				else
 					[self viewArticlePages:self];
@@ -2332,7 +2332,7 @@ withReplyEvent:(NSAppleEventDescriptor *)replyEvent
 			else
 			{
 				NSRect visibleRect = theView.visibleRect;
-                if (flags & NSEventModifierFlagShift)
+				if (flags & NSShiftKeyMask)
 				{
 					if (visibleRect.origin.y < 2)
 						[self goBack:self];
@@ -3628,22 +3628,22 @@ withReplyEvent:(NSAppleEventDescriptor *)replyEvent
 	else if (theAction == @selector(doViewColumn:))
 	{
 		Field * field = menuItem.representedObject;
-		menuItem.state = field.visible ? NSControlStateValueOn : NSControlStateValueOff;
+		menuItem.state = field.visible ? NSOnState : NSOffState;
 		return isMainWindowVisible && isArticleView;
 	}
 	else if (theAction == @selector(doSelectStyle:))
 	{
 		NSString * styleName = menuItem.title;
-		menuItem.state = [styleName isEqualToString:[Preferences standardPreferences].displayStyle] ? NSControlStateValueOn : NSControlStateValueOff;
+		menuItem.state = [styleName isEqualToString:[Preferences standardPreferences].displayStyle] ? NSOnState : NSOffState;
 		return isMainWindowVisible && isAnyArticleView;
 	}
 	else if (theAction == @selector(doSortColumn:))
 	{
 		Field * field = menuItem.representedObject;
         if ([field.name isEqualToString:self.articleController.sortColumnIdentifier]) {
-			menuItem.state = NSControlStateValueOn;
+			menuItem.state = NSOnState;
         } else {
-			menuItem.state = NSControlStateValueOff;
+			menuItem.state = NSOffState;
         }
 		return isMainWindowVisible && isAnyArticleView;
 	}
@@ -3652,9 +3652,9 @@ withReplyEvent:(NSAppleEventDescriptor *)replyEvent
 		NSNumber * ascendingNumber = menuItem.representedObject;
 		BOOL ascending = ascendingNumber.integerValue;
         if (ascending == self.articleController.sortIsAscending) {
-			menuItem.state = NSControlStateValueOn;
+			menuItem.state = NSOnState;
         } else {
-			menuItem.state = NSControlStateValueOff;
+			menuItem.state = NSOffState;
         }
 		return isMainWindowVisible && isAnyArticleView;
 	}
@@ -3674,18 +3674,18 @@ withReplyEvent:(NSAppleEventDescriptor *)replyEvent
 	{
 		Folder * folder = [db folderFromID:self.foldersTree.actualSelection];
 		if (folder && (folder.type == VNAFolderTypeRSS || folder.type == VNAFolderTypeOpenReader) && !folder.loadsFullHTML)
-			menuItem.state = NSControlStateValueOn;
+			menuItem.state = NSOnState;
 		else
-			menuItem.state = NSControlStateValueOff;
+			menuItem.state = NSOffState;
 		return folder && (folder.type == VNAFolderTypeRSS || folder.type == VNAFolderTypeOpenReader) && !db.readOnly && isMainWindowVisible;
 	}
 	else if (theAction == @selector(useWebPageForArticles:))
 	{
 		Folder * folder = [db folderFromID:self.foldersTree.actualSelection];
 		if (folder && (folder.type == VNAFolderTypeRSS || folder.type == VNAFolderTypeOpenReader) && folder.loadsFullHTML)
-			menuItem.state = NSControlStateValueOn;
+			menuItem.state = NSOnState;
 		else
-			menuItem.state = NSControlStateValueOff;
+			menuItem.state = NSOffState;
 		return folder && (folder.type == VNAFolderTypeRSS || folder.type == VNAFolderTypeOpenReader) && !db.readOnly && isMainWindowVisible;
 	}
 	else if (theAction == @selector(deleteFolder:))
@@ -3788,7 +3788,7 @@ withReplyEvent:(NSAppleEventDescriptor *)replyEvent
 	else if (theAction == @selector(keepFoldersArranged:))
 	{
 		Preferences * prefs = [Preferences standardPreferences];
-		menuItem.state = (prefs.self.foldersTreeSortMethod == menuItem.tag) ? NSControlStateValueOn : NSControlStateValueOff;
+		menuItem.state = (prefs.self.foldersTreeSortMethod == menuItem.tag) ? NSOnState : NSOffState;
 		return isMainWindowVisible;
 	}
 	else if (theAction == @selector(setFocusToSearchField:))
@@ -3798,19 +3798,19 @@ withReplyEvent:(NSAppleEventDescriptor *)replyEvent
 	else if (theAction == @selector(reportLayout:))
 	{
 		Preferences * prefs = [Preferences standardPreferences];
-		menuItem.state = (prefs.layout == MA_Layout_Report) ? NSControlStateValueOn : NSControlStateValueOff;
+		menuItem.state = (prefs.layout == MA_Layout_Report) ? NSOnState : NSOffState;
 		return isMainWindowVisible;
 	}
 	else if (theAction == @selector(condensedLayout:))
 	{
 		Preferences * prefs = [Preferences standardPreferences];
-		menuItem.state = (prefs.layout == MA_Layout_Condensed) ? NSControlStateValueOn : NSControlStateValueOff;
+		menuItem.state = (prefs.layout == MA_Layout_Condensed) ? NSOnState : NSOffState;
 		return isMainWindowVisible;
 	}
 	else if (theAction == @selector(unifiedLayout:))
 	{
 		Preferences * prefs = [Preferences standardPreferences];
-		menuItem.state = (prefs.layout == MA_Layout_Unified) ? NSControlStateValueOn : NSControlStateValueOff;
+		menuItem.state = (prefs.layout == MA_Layout_Unified) ? NSOnState : NSOffState;
 		return isMainWindowVisible;
 	}
 	else if (theAction == @selector(markFlagged:))
@@ -3861,9 +3861,9 @@ withReplyEvent:(NSAppleEventDescriptor *)replyEvent
 	{
 		Preferences * prefs = [Preferences standardPreferences];
 		if ([prefs.searchMethod.friendlyName isEqualToString:[menuItem.representedObject friendlyName]])
-			menuItem.state = NSControlStateValueOn;
+			menuItem.state = NSOnState;
 		else 
-			menuItem.state = NSControlStateValueOff;
+			menuItem.state = NSOffState;
 		return YES;
 	} else if (theAction == @selector(openVienna:)) {
         return self.mainWindow.isKeyWindow == false;

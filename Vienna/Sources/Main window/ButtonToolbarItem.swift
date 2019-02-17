@@ -55,12 +55,20 @@ class ButtonToolbarItem: NSToolbarItem {
     // will allow any responder object to validate the toolbar item. This method
     // is also invoked in text-only mode.
     override func validate() {
-        guard let action = action, let responder = NSApp.target(forAction: action, to: target, from: self) else {
+        guard let action = action else {
             return
         }
 
-        if let responder = responder as? NSToolbarItemValidation {
-            isEnabled = responder.validateToolbarItem(self)
+        guard let responder = NSApp.target(forAction: action, to: target, from: self) else {
+            if #available(macOS 10.12, *) {
+                os_log("Toolbar item with identifier '%@' has no responder", type: .debug, itemIdentifier as CVarArg)
+            }
+
+            return
+        }
+
+        if (responder as AnyObject).responds(to: #selector(validateToolbarItem(_:))) {
+            isEnabled = (responder as AnyObject).validateToolbarItem(self)
         }
     }
 

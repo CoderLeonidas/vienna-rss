@@ -260,77 +260,74 @@ static NSMutableDictionary * entityMap = nil;
  */
 +(NSString *)stringByRemovingHTML:(NSString *)theString
 {
-    NSMutableString *aString = [NSMutableString stringWithString:theString];
-    NSInteger maxChrs = theString.length;
-    NSInteger cutOff = 600;
-    NSInteger indexOfChr = 0;
-    NSInteger tagLength = 0;
-    NSInteger tagStartIndex = 0;
-    BOOL isInQuote = NO;
-    BOOL isInTag = NO;
+	NSMutableString * aString = [NSMutableString stringWithString:theString];
+	NSInteger maxChrs = theString.length;
+	NSInteger cutOff = 600;
+	NSInteger indexOfChr = 0;
+	NSInteger tagLength = 0;
+	NSInteger tagStartIndex = 0;
+	BOOL isInQuote = NO;
+	BOOL isInTag = NO;
 
-    // Rudimentary HTML tag parsing. This could be done by initWithHTML on an attributed string
-    // and extracting the raw string but initWithHTML cannot be invoked within an NSURLConnection
-    // callback which is where this is probably liable to be used.
-    while (indexOfChr < maxChrs) {
-        unichar ch = [aString characterAtIndex:indexOfChr];
-        if (isInTag) {
-            ++tagLength;
-        } else if (indexOfChr >= cutOff) {
-            break;
-        }
+	// Rudimentary HTML tag parsing. This could be done by initWithHTML on an attributed string
+	// and extracting the raw string but initWithHTML cannot be invoked within an NSURLConnection
+	// callback which is where this is probably liable to be used.
+	while (indexOfChr < maxChrs)
+	{
+		unichar ch = [aString characterAtIndex:indexOfChr];
+		if (isInTag)
+			++tagLength;
+		else if (indexOfChr >= cutOff)
+			break;
+		
+		if (ch == '"')
+			isInQuote = !isInQuote;
+		else if (ch == '<' && !isInQuote)
+		{
+			isInTag = YES;
+			tagStartIndex = indexOfChr;
+			tagLength = 0;
+		}
+		else if (ch == '>' && isInTag)
+		{
+			if (++tagLength > 2)
+			{
+				NSRange tagRange = NSMakeRange(tagStartIndex, tagLength);
+				NSString * tag = [aString substringWithRange:tagRange].lowercaseString;
+				NSInteger indexOfTagName = 1;
 
-        if (ch == '"') {
-            isInQuote = !isInQuote;
-        } else if (ch == '<' && !isInQuote) {
-            isInTag = YES;
-            tagStartIndex = indexOfChr;
-            tagLength = 0;
-        } else if (ch == '>' && isInTag) {
-            if (tagLength > 1) {
-                ++tagLength;                 // Include the start tag
-                NSRange tagRange = NSMakeRange(tagStartIndex, tagLength);
-                NSString *tag = [aString substringWithRange:tagRange].lowercaseString;
-                NSInteger indexOfTagName = 1;
+				// Extract the tag name
+				if ([tag characterAtIndex:indexOfTagName] == '/')
+					++indexOfTagName;
+				
+				NSInteger chIndex = indexOfTagName;
+				unichar ch = [tag characterAtIndex:chIndex];
+				while (chIndex < tagLength && [[NSCharacterSet lowercaseLetterCharacterSet] characterIsMember:ch])
+					ch = [tag characterAtIndex:++chIndex];
+	
+				NSString * tagName = [tag substringWithRange:NSMakeRange(indexOfTagName, chIndex - indexOfTagName)];
+				[aString deleteCharactersInRange:tagRange];
 
-                // Extract the tag name
-                if ([tag characterAtIndex:indexOfTagName] == '/') {
-                    ++indexOfTagName;
-                }
+				// Replace <br> and </p> with newlines
+				if ([tagName isEqualToString:@"br"] || [tag isEqualToString:@"<p>"] || [tag isEqualToString:@"<div>"])
+					[aString insertString:@"\n" atIndex:tagRange.location];
 
-                NSInteger chIndex = indexOfTagName;
-                unichar ch = [tag characterAtIndex:chIndex];
-                while (chIndex < tagLength && [[NSCharacterSet lowercaseLetterCharacterSet] characterIsMember:ch]) {
-                    ch = [tag characterAtIndex:++chIndex];
-                }
-
-                NSString *tagName = [tag substringWithRange:NSMakeRange(indexOfTagName, chIndex - indexOfTagName)];
-                [aString deleteCharactersInRange:tagRange];
-
-                // Replace <br> and </p> with newlines
-                if ([tagName isEqualToString:@"br"] || [tag isEqualToString:@"<p>"] || [tag isEqualToString:@"<div>"]) {
-                    [aString insertString:@"\n" atIndex:tagRange.location];
-                }
-
-                // Reset scan to the point where the tag started minus one because
-                // we bump up indexOfChr at the end of the loop.
-                indexOfChr = tagStartIndex - 1;
-                maxChrs = aString.length;
-                isInTag = NO;
-                isInQuote = NO;                 // Fix problem with Tribe.net feeds that have bogus quotes in HTML tags
-            } else if (!isInQuote) {
-                isInTag = NO;
-            }
-        }
-        ++indexOfChr;
-    }
-
-    if (maxChrs > cutOff) {
-        [aString deleteCharactersInRange:NSMakeRange(cutOff, maxChrs - cutOff)];
-    }
-
-    return aString.stringByUnescapingExtendedCharacters;
-} // stringByRemovingHTML
+				// Reset scan to the point where the tag started minus one because
+				// we bump up indexOfChr at the end of the loop.
+				indexOfChr = tagStartIndex - 1;
+				maxChrs = aString.length;
+				isInTag = NO;
+				isInQuote = NO;	// Fix problem with Tribe.net feeds that have bogus quotes in HTML tags
+			}
+		}
+		++indexOfChr;
+	}
+	
+	if (maxChrs > cutOff)
+		[aString deleteCharactersInRange:NSMakeRange(cutOff, maxChrs - cutOff)];
+	
+	return aString.stringByUnescapingExtendedCharacters;
+}
 
 /* normalised
  * Returns the current string normalised. Newlines are removed and replaced with spaces and multiple
@@ -735,8 +732,8 @@ static NSMutableDictionary * entityMap = nil;
 	@try
 	{
 		NSPasteboard * pasteboard = [NSPasteboard pasteboardWithName:@"ViennaIDNURLPasteboard"];
-		[pasteboard declareTypes:@[NSPasteboardTypeString] owner:nil];
-		if ([pasteboard setString:urlString forType:NSPasteboardTypeString])
+		[pasteboard declareTypes:@[NSStringPboardType] owner:nil];
+		if ([pasteboard setString:urlString forType:NSStringPboardType])
 			newString = [WebView URLFromPasteboard:pasteboard].absoluteString;
 		else
 		{
@@ -755,18 +752,6 @@ static NSMutableDictionary * entityMap = nil;
 	}
 
 	return newString;
-}
-
-+ (NSString *)toBase64String:(NSString *)string {
-    NSData * data = [string dataUsingEncoding:NSUTF8StringEncoding];
-    NSString * ret = [data base64EncodedStringWithOptions:0];
-    return ret;
-}
-
-+ (NSString *)fromBase64String:(NSString *)string {
-    NSData * base64Data = [[NSData alloc] initWithBase64EncodedString:string options:0];
-    NSString * decryptedStr = [[NSString alloc] initWithData:base64Data encoding:NSUTF8StringEncoding];
-    return decryptedStr;
 }
 
 @end

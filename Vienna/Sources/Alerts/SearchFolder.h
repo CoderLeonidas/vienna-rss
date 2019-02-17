@@ -46,7 +46,7 @@
 	NSInteger smartFolderId;
 	NSInteger totalCriteria;
 	NSInteger parentId;
-	BOOL onScreen;
+	BOOL firstRun;
 }
 
 @property(strong) NSArray * topObjects;

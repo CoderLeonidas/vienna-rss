@@ -39,8 +39,6 @@
 #import "Database.h"
 #import "Vienna-Swift.h"
 
-#define PROGRESS_INDICATOR_DIMENSION 8
-
 @interface ArticleListView ()
 
 @property (nonatomic) OverlayStatusBar *statusBar;
@@ -339,7 +337,7 @@
 	NSMenuItem *openFeedInBrowser = [[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Open Subscription Home Page in External Browser", @"Title of a menu item")
 															   action:@selector(viewSourceHomePageInAlternateBrowser:)
 														keyEquivalent:@""];
-    openFeedInBrowser.keyEquivalentModifierMask = NSEventModifierFlagOption;
+	openFeedInBrowser.keyEquivalentModifierMask = NSAlternateKeyMask;
 	openFeedInBrowser.alternate = YES;
 	[articleListMenu addItem:openFeedInBrowser];
 	[articleListMenu addItemWithTitle:NSLocalizedString(@"Open Article Page", @"Title of a menu item")
@@ -348,7 +346,7 @@
 	NSMenuItem *openItemInBrowser = [[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Open Article Page in External Browser", @"Title of a menu item")
 															   action:@selector(viewArticlePagesInAlternateBrowser:)
 														keyEquivalent:@""];
-    openItemInBrowser.keyEquivalentModifierMask = NSEventModifierFlagOption;
+	openItemInBrowser.keyEquivalentModifierMask = NSAlternateKeyMask;
 	openItemInBrowser.alternate = YES;
 	[articleListMenu addItem:openItemInBrowser];
 
@@ -1018,10 +1016,7 @@
 {
 	if (progressIndicator == nil)
 	{
-		NSRect progressIndicatorFrame;
-		progressIndicatorFrame.size = NSMakeSize(articleList.visibleRect.size.width, PROGRESS_INDICATOR_DIMENSION);
-		progressIndicatorFrame.origin = articleList.visibleRect.origin;
-		progressIndicator = [[NSProgressIndicator alloc] initWithFrame:progressIndicatorFrame];
+		progressIndicator = [[NSProgressIndicator alloc] initWithFrame:articleList.visibleRect];
 		progressIndicator.displayedWhenStopped = NO;
 		[articleList addSubview:progressIndicator];
 	}
@@ -1131,8 +1126,6 @@
 	
 	// Load the actual link.
 	articleText.mainFrameURL = articleLink;
-	// After any clearHTML call, ensure the page gets visible
-	articleText.hidden = NO;
 	
 	// Clear the current URL.
 	[self clearCurrentURL];
@@ -1141,7 +1134,7 @@
 	currentURL = [[NSURL alloc] initWithString:articleLink];
 
 	// We need to redraw the article list so the progress indicator is shown.
-    articleList.needsDisplay = YES;
+	[articleList setNeedsDisplay];
 }
 
 /* url
@@ -1514,7 +1507,7 @@
 	NSInteger count = rowIndexes.count;
 	
 	// Set up the pasteboard
-	[pboard declareTypes:@[MA_PBoardType_RSSItem, @"WebURLsWithTitlesPboardType", NSPasteboardTypeString, NSPasteboardTypeHTML] owner:self];
+	[pboard declareTypes:@[MA_PBoardType_RSSItem, @"WebURLsWithTitlesPboardType", NSStringPboardType, NSHTMLPboardType] owner:self];
 	if (count == 1)
 		[pboard addTypes:@[MA_PBoardType_url, MA_PBoardType_urln, NSURLPboardType] owner:self];
 	
@@ -1567,8 +1560,8 @@
 	// Put string on the pasteboard for external drops.
 	[pboard setPropertyList:arrayOfArticles forType:MA_PBoardType_RSSItem];
 	[pboard setPropertyList:@[arrayOfURLs, arrayOfTitles] forType:@"WebURLsWithTitlesPboardType"];
-	[pboard setString:fullPlainText forType:NSPasteboardTypeString];
-    [pboard setString:fullHTMLText.stringByEscapingExtendedCharacters forType:NSPasteboardTypeHTML];
+	[pboard setString:fullPlainText forType:NSStringPboardType];
+	[pboard setString:fullHTMLText.stringByEscapingExtendedCharacters forType:NSHTMLPboardType];
 
 	return YES;
 }
@@ -1665,7 +1658,7 @@
 	if (isLoadingHTMLArticle)
 	{
 		isLoadingHTMLArticle = NO;
-        articleList.needsDisplay = YES;
+		[articleList setNeedsDisplay];
 	}
 }
 

@@ -40,7 +40,6 @@
 #define DEFAULT_CELL_HEIGHT	300.0
 #define XPOS_IN_CELL	6.0
 #define YPOS_IN_CELL	2.0
-#define PROGRESS_INDICATOR_DIMENSION 16
 
 @interface UnifiedDisplayView ()
 
@@ -91,6 +90,7 @@
 -(void)initTableView
 {
 	// Variable initialization here
+	articleList.backgroundColor = [NSColor whiteColor];
 	[articleList setAllowsMultipleSelection:YES];
 
 	NSMenu * articleListMenu = [[NSMenu alloc] init];
@@ -120,7 +120,7 @@
 	NSMenuItem *openFeedInBrowser = [[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Open Subscription Home Page in External Browser", @"Title of a menu item")
 															   action:@selector(viewSourceHomePageInAlternateBrowser:)
 														keyEquivalent:@""];
-    openFeedInBrowser.keyEquivalentModifierMask = NSEventModifierFlagOption;
+	openFeedInBrowser.keyEquivalentModifierMask = NSAlternateKeyMask;
 	openFeedInBrowser.alternate = YES;
 	[articleListMenu addItem:openFeedInBrowser];
 	[articleListMenu addItemWithTitle:NSLocalizedString(@"Open Article Page", @"Title of a menu item")
@@ -129,7 +129,7 @@
 	NSMenuItem *openItemInBrowser = [[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Open Article Page in External Browser", @"Title of a menu item")
 															   action:@selector(viewArticlePagesInAlternateBrowser:)
 														keyEquivalent:@""];
-    openItemInBrowser.keyEquivalentModifierMask = NSEventModifierFlagOption;
+	openItemInBrowser.keyEquivalentModifierMask = NSAlternateKeyMask;
 	openItemInBrowser.alternate = YES;
 	[articleListMenu addItem:openItemInBrowser];
 
@@ -662,10 +662,8 @@
 {
 	if (progressIndicator == nil)
 	{
-		NSRect progressIndicatorFrame;
-		progressIndicatorFrame.size = NSMakeSize(articleList.visibleRect.size.width, PROGRESS_INDICATOR_DIMENSION);
-		progressIndicatorFrame.origin = articleList.visibleRect.origin;
-		progressIndicator = [[NSProgressIndicator alloc] initWithFrame:progressIndicatorFrame];
+		progressIndicator = [[NSProgressIndicator alloc] initWithFrame:articleList.visibleRect];
+		progressIndicator.style = NSProgressIndicatorSpinningStyle;
 		progressIndicator.displayedWhenStopped = NO;
 		[articleList addSubview:progressIndicator];
 	}
@@ -790,7 +788,7 @@
 	NSInteger count = rowIndexes.count;
 
 	// Set up the pasteboard
-	[pboard declareTypes:@[MA_PBoardType_RSSItem, @"WebURLsWithTitlesPboardType", NSPasteboardTypeString, NSPasteboardTypeHTML] owner:self];
+	[pboard declareTypes:@[MA_PBoardType_RSSItem, @"WebURLsWithTitlesPboardType", NSStringPboardType, NSHTMLPboardType] owner:self];
 	if (count == 1)
 		[pboard addTypes:@[MA_PBoardType_url, MA_PBoardType_urln, NSURLPboardType] owner:self];
 
@@ -844,8 +842,8 @@
 	// Put string on the pasteboard for external drops.
 	[pboard setPropertyList:arrayOfArticles forType:MA_PBoardType_RSSItem];
 	[pboard setPropertyList:@[arrayOfURLs, arrayOfTitles] forType:@"WebURLsWithTitlesPboardType"];
-	[pboard setString:fullPlainText forType:NSPasteboardTypeString];
-	[pboard setString:fullHTMLText.stringByEscapingExtendedCharacters forType:NSPasteboardTypeHTML];
+	[pboard setString:fullPlainText forType:NSStringPboardType];
+	[pboard setString:fullHTMLText.stringByEscapingExtendedCharacters forType:NSHTMLPboardType];
 
 	return YES;
 }

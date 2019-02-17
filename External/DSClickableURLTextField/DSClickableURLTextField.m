@@ -236,9 +236,9 @@
 	NSPasteboard *copyBoard = [NSPasteboard pasteboardWithName:NSGeneralPboard];
 	NSURL *copyURL = [sender representedObject];
 	
-	[copyBoard declareTypes:@[NSURLPboardType, NSPasteboardTypeString] owner:nil];
+	[copyBoard declareTypes:@[NSURLPboardType, NSStringPboardType] owner:nil];
 	[copyURL writeToPasteboard:copyBoard];
-	[copyBoard setString:copyURL.absoluteString forType:NSPasteboardTypeString];
+	[copyBoard setString:copyURL.absoluteString forType:NSStringPboardType];
 }
 
 - (void)mouseDown:(NSEvent *)mouseEvent

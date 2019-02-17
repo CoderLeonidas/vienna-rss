@@ -243,7 +243,7 @@
 
 		if (item.image != nil)
 			[aCell setImage:item.image];
-		[aCell setTextColor:(rowIndex == aTableView.selectedRow) ? [NSColor whiteColor] : [NSColor controlTextColor]];
+		[aCell setTextColor:(rowIndex == aTableView.selectedRow) ? [NSColor whiteColor] : [NSColor darkGrayColor]];
 	}
 }
 
@@ -258,7 +258,7 @@
 
 	// TODO: return item when we have a cell that can parse it. Until then, construct our own data.
 	NSString * rawfilename = item.filename.lastPathComponent;
-    NSString * filename = [rawfilename stringByRemovingPercentEncoding];
+    NSString * filename = [rawfilename stringByReplacingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
 	if (filename == nil)
 		filename = @"";
 

@@ -84,18 +84,9 @@ typedef NS_ENUM (NSInteger, Redirect301Status) {
         networkQueue = [[NSOperationQueue alloc] init];
         networkQueue.name = @"VNAHTTPSession queue";
         networkQueue.maxConcurrentOperationCount = [[Preferences standardPreferences] integerForKey:MAPref_ConcurrentDownloads];
-        NSString * osVersion;
-        if (@available(macOS 10.10, *)) {
-            NSOperatingSystemVersion version = [NSProcessInfo processInfo].operatingSystemVersion;
-            osVersion = [NSString stringWithFormat:@"%ld_%ld_%ld", version.majorVersion, version.minorVersion, version.patchVersion];
-        } else {
-            osVersion = @"10_9_x";
-        }
-        NSString * userAgent = [NSString stringWithFormat:MA_DefaultUserAgentString, [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleVersion"], osVersion];
         NSURLSessionConfiguration * config = [NSURLSessionConfiguration defaultSessionConfiguration];
         config.timeoutIntervalForRequest = 180;
         config.URLCache = nil;
-        config.HTTPAdditionalHeaders = @{@"User-Agent": userAgent};
         _urlSession = [NSURLSession sessionWithConfiguration:config delegate:self delegateQueue:[NSOperationQueue mainQueue]];
 
         NSNotificationCenter * nc = [NSNotificationCenter defaultCenter];
@@ -362,7 +353,7 @@ typedef NS_ENUM (NSInteger, Redirect301Status) {
 -(void)pumpFolderIconRefresh:(Folder *)folder
 {
     // The activity log name we use depends on whether or not this folder has a real name.
-    NSString * name = [folder.name hasPrefix:[Database untitledFeedFolderName]] ? folder.feedURL : folder.name;
+    NSString * name = [folder.name isEqualToString:[Database untitledFeedFolderName]] ? folder.feedURL : folder.name;
     ActivityItem *aItem = [[ActivityLog defaultLog] itemByName:name];
 
     NSString * favIconPath;
@@ -437,7 +428,7 @@ typedef NS_ENUM (NSInteger, Redirect301Status) {
 
 
     // The activity log name we use depends on whether or not this folder has a real name.
-    NSString * name = [folder.name hasPrefix:[Database untitledFeedFolderName]] ? folder.feedURL : folder.name;
+    NSString * name = [folder.name isEqualToString:[Database untitledFeedFolderName]] ? folder.feedURL : folder.name;
     ActivityItem * aItem = [[ActivityLog defaultLog] itemByName:name];
 
     // Compute the URL for this connection
@@ -491,12 +482,6 @@ typedef NS_ENUM (NSInteger, Redirect301Status) {
         [myRequest addValue:
          @"application/rss+xml,application/rdf+xml,application/atom+xml,text/xml,application/xml,application/xhtml+xml;q=0.9,text/html;q=0.8,*/*;q=0.5"
                       forHTTPHeaderField:@"Accept"];
-        // if authentication infos are present, try basic authentication first
-        if (![folder.username isEqualToString:@""]) {
-            NSString* usernameAndPassword = [NSString toBase64String:[NSString stringWithFormat:@"%@:%@", folder.username, folder.password]];
-			[myRequest setValue:[NSString stringWithFormat:@"Basic %@", usernameAndPassword] forHTTPHeaderField:@"Authorization"];
-		}
-
 
         __weak typeof(self)weakSelf = self;
         [self addConnection:myRequest completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
@@ -562,7 +547,7 @@ typedef NS_ENUM (NSInteger, Redirect301Status) {
         // hack for handling file:// URLs
         if (url.fileURL) {
             NSFileManager *fileManager = [NSFileManager defaultManager];
-            NSString * filePath = [url.path stringByRemovingPercentEncoding];
+            NSString * filePath = [url.path stringByReplacingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
             BOOL isDirectory = NO;
             if ([fileManager fileExistsAtPath:filePath isDirectory:&isDirectory] && !isDirectory) {
                 responseStatusCode = 200;

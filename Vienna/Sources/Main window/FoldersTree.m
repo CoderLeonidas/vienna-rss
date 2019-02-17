@@ -45,7 +45,6 @@
 @property (nonatomic) NSImage *refreshProgressImage;
 @property (nonatomic) BOOL blockSelectionHandler;
 @property (nonatomic) BOOL canRenameFolders;
-@property (nonatomic) BOOL useToolTips;
 
 -(void)setFolderListFont;
 -(void)unarchiveState:(NSArray *)stateArray;
@@ -79,7 +78,6 @@
 		_rootNode = [[TreeNode alloc] init:nil atIndex:0 folder:nil canHaveChildren:YES];
 		_blockSelectionHandler = NO;
 		_canRenameFolders = NO;
-		_useToolTips = NO;
 	}
 
 	return self;
@@ -120,7 +118,7 @@
 	[self.outlineView setAutoresizesOutlineColumn:NO];
 
 	// Register for dragging
-	[self.outlineView registerForDraggedTypes:@[MA_PBoardType_FolderList, MA_PBoardType_RSSSource, @"WebURLsWithTitlesPboardType", NSPasteboardTypeString]]; 
+	[self.outlineView registerForDraggedTypes:@[MA_PBoardType_FolderList, MA_PBoardType_RSSSource, @"WebURLsWithTitlesPboardType", NSStringPboardType]]; 
 	[self.outlineView setVerticalMotionCanBeginDrag:YES];
 	
 	// Make sure selected row is visible
@@ -129,7 +127,7 @@
     [self.outlineView accessibilitySetOverrideValue:NSLocalizedString(@"Folders", nil) forAttribute:NSAccessibilityDescriptionAttribute];
 
 	// Want tooltips
-	self.useToolTips = YES;
+	[self.outlineView setEnableTooltips:YES];
 	
 	// Set the menu for the popup button
 	self.outlineView.menu = self.folderMenu;
@@ -178,7 +176,7 @@
     NSMenuItem *alternateItem = [[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Open Subscription Home Page in External Browser", @"Title of a menu item")
 														   action:@selector(viewSourceHomePageInAlternateBrowser:)
 													keyEquivalent:@""];
-    alternateItem.keyEquivalentModifierMask = NSEventModifierFlagOption;
+    alternateItem.keyEquivalentModifierMask = NSAlternateKeyMask;
 	alternateItem.alternate = YES;
     [folderMenu addItem:alternateItem];
 	[folderMenu addItemWithTitle:NSLocalizedString(@"Get Info", @"Title of a menu item")
@@ -917,25 +915,18 @@
 	return [node childByIndex:index];
 }
 
-/* outlineView:tooltipForCell:rect:tableColumn:item:mouseLocation: [delegate]
+/* tooltipForItem [dataSource]
  * For items that have counts, we show a tooltip that aggregates the counts.
  */
-- (NSString *)outlineView:(NSOutlineView *)outlineView toolTipForCell:(NSCell *)cell rect:(NSRectPointer)rect tableColumn:(NSTableColumn *)tableColumn item:(id)item mouseLocation:(NSPoint)mouseLocation
+-(NSString *)outlineView:(FolderView *)outlineView tooltipForItem:(id)item
 {
 	TreeNode * node = (TreeNode *)item;
-	if (self.useToolTips && node != nil)
+	if (node != nil)
 	{
 		if (node.folder.nonPersistedFlags & VNAFolderFlagError)
 			return NSLocalizedString(@"An error occurred when this feed was last refreshed", nil);
-		NSInteger unreadCount;
-		if (node.folder.childUnreadCount) {
-		    unreadCount = node.folder.childUnreadCount;
-		} else {
-		    unreadCount = node.folder.unreadCount;
-		}
-		if (unreadCount) {
-			return [NSString stringWithFormat:NSLocalizedString(@"%d unread articles", nil), unreadCount];
-		}
+		if (node.folder.childUnreadCount)
+			return [NSString stringWithFormat:NSLocalizedString(@"%d unread articles", nil), node.folder.childUnreadCount];
 	}
 	return nil;
 }
@@ -1163,7 +1154,7 @@
 -(NSDragOperation)outlineView:(NSOutlineView*)olv validateDrop:(id <NSDraggingInfo>)info proposedItem:(id)item proposedChildIndex:(NSInteger)index
 {
 	NSPasteboard * pb = [info draggingPasteboard]; 
-	NSString * type = [pb availableTypeFromArray:@[MA_PBoardType_FolderList, MA_PBoardType_RSSSource, @"WebURLsWithTitlesPboardType", NSPasteboardTypeString]]; 
+	NSString * type = [pb availableTypeFromArray:@[MA_PBoardType_FolderList, MA_PBoardType_RSSSource, @"WebURLsWithTitlesPboardType", NSStringPboardType]]; 
 	NSDragOperation dragType = ([type isEqualToString:MA_PBoardType_FolderList]) ? NSDragOperationMove : NSDragOperationCopy;
 
 	TreeNode * node = (TreeNode *)item;
@@ -1220,7 +1211,7 @@
 	NSInteger index;
 
 	// We'll create the types of data on the clipboard.
-	[pboard declareTypes:@[MA_PBoardType_FolderList, MA_PBoardType_RSSSource, @"WebURLsWithTitlesPboardType", NSPasteboardTypeString] owner:self]; 
+	[pboard declareTypes:@[MA_PBoardType_FolderList, MA_PBoardType_RSSSource, @"WebURLsWithTitlesPboardType", NSStringPboardType] owner:self]; 
 
 	// Create an array of NSNumber objects containing the selected folder IDs.
 	NSInteger countOfItems = 0;
@@ -1267,7 +1258,7 @@
 
 	// Copy the data to the pasteboard 
 	[pboard setPropertyList:externalDragData forType:MA_PBoardType_RSSSource];
-	[pboard setString:stringDragData forType:NSPasteboardTypeString];
+	[pboard setString:stringDragData forType:NSStringPboardType];
 	[pboard setPropertyList:internalDragData forType:MA_PBoardType_FolderList]; 
 	[pboard setPropertyList:@[arrayOfURLs, arrayOfTitles] forType:@"WebURLsWithTitlesPboardType"]; 
 	return countOfItems > 0; 
@@ -1448,7 +1439,7 @@
 { 
 	__block NSInteger childIndex = child;
 	NSPasteboard * pb = [info draggingPasteboard];
-	NSString * type = [pb availableTypeFromArray:@[MA_PBoardType_FolderList, MA_PBoardType_RSSSource, @"WebURLsWithTitlesPboardType", NSPasteboardTypeString]];
+	NSString * type = [pb availableTypeFromArray:@[MA_PBoardType_FolderList, MA_PBoardType_RSSSource, @"WebURLsWithTitlesPboardType", NSStringPboardType]];
 	TreeNode * node = targetItem ? (TreeNode *)targetItem : self.rootNode;
 
 	NSInteger parentId = node.nodeId;
@@ -1456,7 +1447,7 @@
 		childIndex = 0;
 
 	// Check the type
-	if ([type isEqualToString:NSPasteboardTypeString])
+	if ([type isEqualToString:NSStringPboardType])
 	{
 		// This is possibly a URL that we'll handle as a potential feed subscription. It's
 		// not our call to make though.

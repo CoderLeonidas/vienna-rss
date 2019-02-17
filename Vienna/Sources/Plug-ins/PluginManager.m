@@ -139,13 +139,13 @@
             for (oneKey in keyArray)
             {
                 if ([oneKey isEqualToString:@"Cmd"])
-                    keyMod |= NSEventModifierFlagCommand;
+                    keyMod |= NSCommandKeyMask;
                 else if ([oneKey isEqualToString:@"Shift"])
-                    keyMod |= NSEventModifierFlagShift;
+                    keyMod |= NSShiftKeyMask;
                 else if ([oneKey isEqualToString:@"Alt"])
-                    keyMod |= NSEventModifierFlagOption;
+                    keyMod |= NSAlternateKeyMask;
                 else if ([oneKey isEqualToString:@"Ctrl"])
-                    keyMod |= NSEventModifierFlagControl;
+                    keyMod |= NSControlKeyMask;
                 else
                 {
                     if (!keyChar.blank)

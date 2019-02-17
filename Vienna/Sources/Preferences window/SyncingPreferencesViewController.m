@@ -56,7 +56,7 @@ static BOOL _credentialsChanged;
     
     // restore from Preferences and from keychain
     Preferences * prefs = [Preferences standardPreferences];
-    syncButton.state = prefs.syncGoogleReader ? NSControlStateValueOn : NSControlStateValueOff;
+    syncButton.state = prefs.syncGoogleReader ? NSOnState : NSOffState;
     NSString * theUsername = prefs.syncingUser;
     if (!theUsername)
         theUsername=@"";
@@ -143,7 +143,7 @@ static BOOL _credentialsChanged;
 -(void)windowWillClose:(NSNotification *)notification
 {
     [[NSNotificationCenter defaultCenter] removeObserver:self];
-    if(syncButton.state == NSControlStateValueOn && _credentialsChanged)
+    if(syncButton.state == NSOnState && _credentialsChanged)
     {
         [[OpenReader sharedManager] resetAuthentication];
         [[OpenReader sharedManager] loadSubscriptions];
@@ -154,7 +154,7 @@ static BOOL _credentialsChanged;
 -(IBAction)changeSyncOpenReader:(id)sender
 {
     // enable/disable syncing
-    BOOL sync = [sender state] == NSControlStateValueOn;
+    BOOL sync = [sender state] == NSOnState;
     Preferences *prefs = [Preferences standardPreferences];
     prefs.syncGoogleReader = sync;
     [prefs savePreferences];

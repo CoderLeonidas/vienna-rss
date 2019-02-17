@@ -91,10 +91,10 @@ NSURL * cleanedUpAndEscapedUrlFromString(NSString * theUrl)
 {
 	NSURL *urlToLoad = nil;
 	NSPasteboard * pasteboard = [NSPasteboard pasteboardWithName:@"ViennaIDNURLPasteboard"];
-	[pasteboard declareTypes:@[NSPasteboardTypeString] owner:nil];
+	[pasteboard declareTypes:@[NSStringPboardType] owner:nil];
 	@try
 	{
-		if ([pasteboard setString:theUrl forType:NSPasteboardTypeString])
+		if ([pasteboard setString:theUrl forType:NSStringPboardType])
 			urlToLoad = [WebView URLFromPasteboard:pasteboard];
 	}
 	@catch (NSException * exception)

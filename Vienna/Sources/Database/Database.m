@@ -357,7 +357,7 @@ NSNotificationName const databaseDidDeleteFolderNotification = @"Database Did De
 		NSOpenPanel * openPanel = [NSOpenPanel openPanel];
 		[openPanel setCanChooseFiles:NO];
 		[openPanel setCanChooseDirectories:YES];
-        if ([openPanel runModal] == NSModalResponseCancel)
+		if ([openPanel runModal] == NSFileHandlingPanelCancelButton)
 			return nil;
 		
 		// Make the new database name.

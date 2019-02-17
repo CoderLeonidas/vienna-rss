@@ -1,0 +1,22 @@
+PODS:
+  - FMDB (2.7.5):
+    - FMDB/standard (= 2.7.5)
+  - FMDB/standard (2.7.5)
+  - MASPreferences (1.3)
+
+DEPENDENCIES:
+  - FMDB
+  - MASPreferences
+
+SPEC REPOS:
+  https://github.com/CocoaPods/Specs.git:
+    - FMDB
+    - MASPreferences
+
+SPEC CHECKSUMS:
+  FMDB: 2ce00b547f966261cd18927a3ddb07cb6f3db82a
+  MASPreferences: c08b8622dd17b47da87669e741efd7c92e970e8c
+
+PODFILE CHECKSUM: a1f90b99cea26d839c41d316e788e4d5378c5404
+
+COCOAPODS: 1.5.0
